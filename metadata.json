@@ -1,0 +1,7 @@
+
+{
+  "name": "Pokémon Legends Z-A Assistant",
+  "description": "An application to help track progress and plan strategies for Pokémon Legends: Z-A Nuzlocke challenges, using the Gemini API for location-specific data and team-building advice.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
