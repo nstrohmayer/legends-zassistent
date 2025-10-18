@@ -63,6 +63,8 @@ export interface JournalSidebarProps {
 
 export interface JournalEntryDisplayProps {
     entry: JournalEntry | null;
+    onUpdate: (id: string, title: string, content: string) => void;
+    onOpenPokemonDetail: (pokemonNameOrId: string | number) => void;
 }
 
 export interface TeamManagerProps {

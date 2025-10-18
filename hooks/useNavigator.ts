@@ -1,25 +1,16 @@
-
-
 import { useState, useCallback } from 'react';
 import { fetchNavigatorGuidanceFromGemini, parseHuntIntentFromGemini } from '../services/geminiService';
 import { huntingListService } from '../services/huntingListService';
-
-export type ActiveMainPanelType = 'location' | 'navigator' | 'starterSelection' | 'teamBuilder';
 
 interface UseNavigatorProps {
   onHuntSuccess: () => void;
 }
 
 export const useNavigator = ({ onHuntSuccess }: UseNavigatorProps) => {
-  const [activeMainPanel, setActiveMainPanel] = useState<ActiveMainPanelType>('teamBuilder');
   const [navigatorUserPrompt, setNavigatorUserPrompt] = useState<string>("");
   const [navigatorGeminiResponse, setNavigatorGeminiResponse] = useState<string | null>(null);
   const [isLoadingNavigatorQuery, setIsLoadingNavigatorQuery] = useState<boolean>(false);
   const [navigatorError, setNavigatorError] = useState<string | null>(null);
-
-  const switchToNavigatorPanel = useCallback(() => {
-    setActiveMainPanel('teamBuilder');
-  }, []);
 
   const handleNavigatorReset = useCallback(() => {
     setNavigatorUserPrompt("");
@@ -71,13 +62,10 @@ export const useNavigator = ({ onHuntSuccess }: UseNavigatorProps) => {
   }, [onHuntSuccess, handleNavigatorReset]);
 
   return {
-    activeMainPanel,
-    setActiveMainPanel, // Expose this for useGameProgression and App
     navigatorUserPrompt,
     navigatorGeminiResponse,
     isLoadingNavigatorQuery,
     navigatorError,
-    switchToNavigatorPanel,
     handleNavigatorSubmit,
     handleNavigatorReset,
   };

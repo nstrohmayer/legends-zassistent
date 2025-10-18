@@ -43,11 +43,11 @@ export const NavigatorDisplay: React.FC<NavigatorDisplayProps> = ({
   return (
     <div className="p-2 md:p-4 space-y-6 animate-fadeIn">
       <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-400">
-        Nuzlocke Navigator
+        Navigator
       </h1>
       
       <p className="text-slate-300 text-sm md:text-base">
-        Ask any question related to your Pokémon Legends: Z-A Nuzlocke, or use special commands!
+        Ask any question related to Pokémon Legends: Z-A, or use special commands!
         For example, ask "What are good counters for Viola?", or use a command like "I want to hunt all the Kalos starters".
       </p>
 

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { AddTeamMemberData, TeamMember, JournalEntry } from './types';
 import { KALOS_WILD_ZONES } from './constants';
@@ -14,7 +15,7 @@ import { JournalEntryDisplay } from './components/JournalEntryDisplay';
 
 
 import { useTeamManager } from './hooks/useTeamManager';
-import { ActiveMainPanelType, useNavigator } from './hooks/useNavigator';
+import { useNavigator } from './hooks/useNavigator';
 import { useDetailBar } from './hooks/useDetailBar';
 import { usePokemonCollections } from './hooks/usePokemonCollections';
 import { useJournal } from './hooks/useJournal';
@@ -23,13 +24,12 @@ import { useJournal } from './hooks/useJournal';
 // Placeholder icons - can be moved if they grow
 const IconPokeball = () => <span className="text-red-500">◉</span>;
 
+type ActiveView = 'team' | 'pokedex' | 'navigator' | 'zones' | 'journal';
+
 const App: React.FC = () => {
   const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState<boolean>(true); 
   const [isMobileView, setIsMobileView] = useState<boolean>(false);
-  const [activeSidebarTab, setActiveSidebarTab] = useState<'journal' | 'zones'>('journal');
-  
-  // State for Team Builder tabs
-  const [teamBuilderActiveTab, setTeamBuilderActiveTab] = useState<'management' | 'navigator' | 'details'>('management');
+  const [activeView, setActiveView] = useState<ActiveView>('team');
   
   // New state for selected journal entry
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
@@ -87,16 +87,13 @@ const App: React.FC = () => {
   
 
   const handleHuntSuccess = useCallback(() => {
-    setActiveMainPanel('teamBuilder');
-    setTeamBuilderActiveTab('management');
+    setActiveView('team');
     if (isMobileView) {
       setIsLeftSidebarCollapsed(true);
     }
   }, [isMobileView]);
 
   const {
-    activeMainPanel,
-    setActiveMainPanel, 
     navigatorUserPrompt,
     navigatorGeminiResponse,
     isLoadingNavigatorQuery,
@@ -146,22 +143,13 @@ const App: React.FC = () => {
     }
   }, [handleOpenPokemonDetail, isMobileView]);
   
-  const handleSwitchToTeamBuilderAndCollapse = useCallback(() => {
-    setActiveMainPanel('teamBuilder');
-    setSelectedEntryId(null); // Deselect any journal entry
-    setTeamBuilderActiveTab('management'); // Reset to management tab
-    if (isMobileView) {
-      setIsLeftSidebarCollapsed(true);
-    }
-  }, [setActiveMainPanel, isMobileView]);
-  
   const handleSelectJournalEntry = useCallback((id: string) => {
     setSelectedEntryId(id);
-    setActiveMainPanel('journalEntry');
+    setActiveView('journal');
      if (isMobileView) {
       setIsLeftSidebarCollapsed(true);
     }
-  }, [setActiveMainPanel, isMobileView]);
+  }, [isMobileView]);
 
   const handleAddJournalEntry = useCallback(() => {
     const newId = addJournalEntry();
@@ -172,9 +160,19 @@ const App: React.FC = () => {
     deleteJournalEntry(id);
     if (selectedEntryId === id) {
         setSelectedEntryId(null);
-        setActiveMainPanel('teamBuilder'); // Go back to a default view
+        setActiveView('team'); // Go back to a default view
     }
-  }, [deleteJournalEntry, selectedEntryId, setActiveMainPanel]);
+  }, [deleteJournalEntry, selectedEntryId]);
+  
+  const handleViewChange = (view: ActiveView) => {
+      setActiveView(view);
+      if (view !== 'journal') {
+        setSelectedEntryId(null);
+      }
+      if (isMobileView) {
+          setIsLeftSidebarCollapsed(true);
+      }
+  };
 
   useEffect(() => {
     if (selectedMoveForAssignment) {
@@ -231,125 +229,97 @@ const App: React.FC = () => {
   const selectedJournalEntry = journalEntries.find(e => e.id === selectedEntryId) || null;
 
   const renderMainPanel = () => {
-    switch (activeMainPanel) {
-      case 'journalEntry':
-          return <JournalEntryDisplay entry={selectedJournalEntry} />;
-      case 'teamBuilder':
-        return (
-          <div className="animate-fadeIn">
-              <h1 className="text-3xl md:text-4xl font-extrabold text-slate-100">
-                  Pokémon Tools
-              </h1>
-                {/* Top Level Tabs */}
-                <div className="flex space-x-1 border-b-2 border-slate-700 mt-4 mb-6">
-                    <button
-                        onClick={() => setTeamBuilderActiveTab('management')}
-                        className={`px-4 py-2 text-sm font-semibold rounded-t-md transition-colors ${
-                            teamBuilderActiveTab === 'management' ? 'bg-slate-800 text-sky-300 border-b-2 border-sky-400' : 'text-slate-400 hover:bg-slate-800/50'
-                        }`}
-                    >
-                        Team
-                    </button>
-                     <button
-                        onClick={() => setTeamBuilderActiveTab('details')}
-                        className={`px-4 py-2 text-sm font-semibold rounded-t-md transition-colors ${
-                            teamBuilderActiveTab === 'details' ? 'bg-slate-800 text-sky-300 border-b-2 border-sky-400' : 'text-slate-400 hover:bg-slate-800/50'
-                        }`}
-                    >
-                        Pokédex
-                    </button>
-                    <button
-                        onClick={() => setTeamBuilderActiveTab('navigator')}
-                        className={`px-4 py-2 text-sm font-semibold rounded-t-md transition-colors ${
-                            teamBuilderActiveTab === 'navigator' ? 'bg-slate-800 text-sky-300 border-b-2 border-sky-400' : 'text-slate-400 hover:bg-slate-800/50'
-                        }`}
-                    >
-                        Navigator
-                    </button>
+    switch (activeView) {
+        case 'journal':
+            return <JournalEntryDisplay entry={selectedJournalEntry} onUpdate={updateJournalEntry} onOpenPokemonDetail={handleOpenPokemonDetail} />;
+        case 'zones':
+            return (
+                 <div className="flex items-center justify-center h-full text-center animate-fadeIn">
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-400">Wild Zones</h1>
+                        <p className="text-slate-500 mt-2">Select a Pokémon from a zone in the sidebar to view its details.</p>
+                    </div>
                 </div>
+            );
+        case 'team':
+             return (
+                 <div className="animate-fadeIn space-y-8">
+                    <section>
+                        <h2 className="text-2xl font-bold text-sky-300 mb-4">My Party</h2>
+                        <TeamManager
+                            team={team}
+                            setTeam={setTeam as (team: TeamMember[]) => void}
+                            onRemoveTeamMember={removeTeamMember}
+                            IconPokeball={IconPokeball}
+                            onUpdateTeamMemberNickname={handleUpdateTeamMemberNickname}
+                            onUpdateTeamMemberLevel={handleUpdateTeamMemberLevel}
+                            onUpdateTeamMemberItem={handleUpdateTeamMemberItem}
+                            onUpdateTeamMemberMove={handleUpdateTeamMemberMove}
+                            onToggleTeamMemberShiny={handleToggleTeamMemberShiny}
+                        />
+                    </section>
+                    
+                    <div className="border-t-2 border-slate-700/50"></div>
+                    
+                    <section>
+                        <h2 className="text-2xl font-bold text-sky-300 mb-4">Liked Pokémon</h2>
+                         <LikedPokemonDisplay 
+                            likedPokemonIds={Object.keys(likedPokemonMap).filter(id => likedPokemonMap[id]).map(Number)}
+                            onPokemonClick={handleOpenPokemonDetail}
+                         />
+                    </section>
 
-                {/* Content for Top Level Tabs */}
-                {teamBuilderActiveTab === 'management' && (
-                    <div className="animate-fadeIn space-y-8">
-                        <section>
-                            <h2 className="text-2xl font-bold text-sky-300 mb-4">My Party</h2>
-                            <TeamManager
-                                team={team}
-                                setTeam={setTeam as (team: TeamMember[]) => void}
-                                onRemoveTeamMember={removeTeamMember}
-                                IconPokeball={IconPokeball}
-                                onUpdateTeamMemberNickname={handleUpdateTeamMemberNickname}
-                                onUpdateTeamMemberLevel={handleUpdateTeamMemberLevel}
-                                onUpdateTeamMemberItem={handleUpdateTeamMemberItem}
-                                onUpdateTeamMemberMove={handleUpdateTeamMemberMove}
-                                onToggleTeamMemberShiny={handleToggleTeamMemberShiny}
-                            />
-                        </section>
-                        
-                        <div className="border-t-2 border-slate-700/50"></div>
-                        
-                        <section>
-                            <h2 className="text-2xl font-bold text-sky-300 mb-4">Liked Pokémon</h2>
-                             <LikedPokemonDisplay 
-                                likedPokemonIds={Object.keys(likedPokemonMap).filter(id => likedPokemonMap[id]).map(Number)}
-                                onPokemonClick={handleOpenPokemonDetail}
-                             />
-                        </section>
+                    <div className="border-t-2 border-slate-700/50"></div>
+                    
+                    <section>
+                        <h2 className="text-2xl font-bold text-sky-300 mb-4">Hunting List</h2>
+                        <HuntingListDisplay
+                            huntingList={huntingList}
+                            onPokemonClick={handleOpenPokemonDetail}
+                            onRemoveFromHunt={removeFromHuntingList}
+                        />
+                    </section>
 
-                        <div className="border-t-2 border-slate-700/50"></div>
-                        
-                        <section>
-                            <h2 className="text-2xl font-bold text-sky-300 mb-4">Hunting List</h2>
-                            <HuntingListDisplay
-                                huntingList={huntingList}
-                                onPokemonClick={handleOpenPokemonDetail}
-                                onRemoveFromHunt={removeFromHuntingList}
-                            />
-                        </section>
+                    <div className="border-t-2 border-slate-700/50"></div>
 
-                        <div className="border-t-2 border-slate-700/50"></div>
-
-                        <section>
-                            <h2 className="text-2xl font-bold text-sky-300 mb-4">Prospector</h2>
-                            <TeamProspector 
-                                team={team}
-                                onAbilityClick={handleAbilityNameClick}
-                                likedPokemonMap={likedPokemonMap}
-                                onToggleLiked={toggleLikedPokemon}
-                                onPokemonClick={handleOpenPokemonDetail}
-                                onAddToTeam={addTeamMember}
-                            />
-                        </section>
-                    </div>
-                )}
-                
-                {teamBuilderActiveTab === 'details' && (
-                     <div className="animate-fadeIn">
-                        <PokemonDetailLookup 
+                    <section>
+                        <h2 className="text-2xl font-bold text-sky-300 mb-4">Prospector</h2>
+                        <TeamProspector 
+                            team={team}
                             onAbilityClick={handleAbilityNameClick}
-                            onMoveClick={handleMoveNameClick}
+                            likedPokemonMap={likedPokemonMap}
+                            onToggleLiked={toggleLikedPokemon}
+                            onPokemonClick={handleOpenPokemonDetail}
+                            onAddToTeam={addTeamMember}
                         />
-                    </div>
-                )}
-
-                {teamBuilderActiveTab === 'navigator' && (
-                    <div className="animate-fadeIn">
-                         <NavigatorDisplay
-                            initialPromptValue={navigatorUserPrompt}
-                            onPromptSubmit={handleNavigatorSubmit}
-                            isLoading={isLoadingNavigatorQuery}
-                            apiResponse={navigatorGeminiResponse}
-                            apiError={navigatorError}
-                            onReset={handleNavigatorReset}
-                            onPokemonNameClick={handleOpenPokemonDetail}
-                        />
-                    </div>
-                )}
-          </div>
-        );
-      default:
-        // Default to a placeholder if no entry is selected
-        return <JournalEntryDisplay entry={null} />;
+                    </section>
+                </div>
+            );
+        case 'pokedex':
+            return (
+                 <div className="animate-fadeIn">
+                    <PokemonDetailLookup 
+                        onAbilityClick={handleAbilityNameClick}
+                        onMoveClick={handleMoveNameClick}
+                    />
+                </div>
+            );
+        case 'navigator':
+            return (
+                <div className="animate-fadeIn">
+                     <NavigatorDisplay
+                        initialPromptValue={navigatorUserPrompt}
+                        onPromptSubmit={handleNavigatorSubmit}
+                        isLoading={isLoadingNavigatorQuery}
+                        apiResponse={navigatorGeminiResponse}
+                        apiError={navigatorError}
+                        onReset={handleNavigatorReset}
+                        onPokemonNameClick={handleOpenPokemonDetail}
+                    />
+                </div>
+            );
+        default:
+            return <JournalEntryDisplay entry={null} onUpdate={updateJournalEntry} onOpenPokemonDetail={handleOpenPokemonDetail} />;
     }
   };
 
@@ -365,50 +335,69 @@ const App: React.FC = () => {
                      {isLeftSidebarCollapsed ? '›' : '‹'}
                 </button>
             </div>
-            <div className={`pt-4 space-y-1 flex-grow overflow-y-auto flex flex-col ${isLeftSidebarCollapsed ? 'hidden' : 'block'}`}>
-              <button
-                onClick={handleSwitchToTeamBuilderAndCollapse}
-                className="w-full text-left px-4 py-3 transition-colors text-slate-300 hover:bg-slate-700/50 font-medium bg-slate-800/50"
-              >
-                Pokémon
-              </button>
-               
-                <div className="px-2 pt-2">
-                    <div className="flex bg-slate-800 rounded-lg p-1 mb-3">
-                        <button
-                            onClick={() => setActiveSidebarTab('journal')}
-                            className={`flex-1 text-center text-sm font-semibold py-1.5 rounded-md transition-colors ${
-                                activeSidebarTab === 'journal' ? 'bg-gradient-to-r from-blue-500 to-fuchsia-600 text-white' : 'text-slate-300 hover:bg-slate-700'
-                            }`}
-                        >
-                            Journal
-                        </button>
-                        <button
-                            onClick={() => setActiveSidebarTab('zones')}
-                            className={`flex-1 text-center text-sm font-semibold py-1.5 rounded-md transition-colors ${
-                                activeSidebarTab === 'zones' ? 'bg-gradient-to-r from-blue-500 to-fuchsia-600 text-white' : 'text-slate-300 hover:bg-slate-700'
-                            }`}
-                        >
-                            Wild Zones
-                        </button>
-                    </div>
+            <div className={`pt-4 flex-grow overflow-y-auto flex flex-col ${isLeftSidebarCollapsed ? 'hidden' : 'block'}`}>
+                <div className="px-4 space-y-2 mb-4">
+                    <button
+                        onClick={() => handleViewChange('team')}
+                        className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors ${
+                            activeView === 'team' ? 'bg-gradient-to-r from-blue-500 to-fuchsia-600 text-white shadow-lg' : 'bg-slate-800/50 hover:bg-slate-700/60 text-slate-300'
+                        }`}
+                    >
+                        Team
+                    </button>
+                    <button
+                        onClick={() => handleViewChange('pokedex')}
+                        className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors ${
+                            activeView === 'pokedex' ? 'bg-gradient-to-r from-blue-500 to-fuchsia-600 text-white shadow-lg' : 'bg-slate-800/50 hover:bg-slate-700/60 text-slate-300'
+                        }`}
+                    >
+                        Pokédex
+                    </button>
+                    <button
+                        onClick={() => handleViewChange('journal')}
+                        className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors ${
+                            activeView === 'journal' ? 'bg-gradient-to-r from-blue-500 to-fuchsia-600 text-white shadow-lg' : 'bg-slate-800/50 hover:bg-slate-700/60 text-slate-300'
+                        }`}
+                    >
+                        Journal
+                    </button>
+                    <button
+                        onClick={() => handleViewChange('navigator')}
+                        className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors ${
+                            activeView === 'navigator' ? 'bg-gradient-to-r from-blue-500 to-fuchsia-600 text-white shadow-lg' : 'bg-slate-800/50 hover:bg-slate-700/60 text-slate-300'
+                        }`}
+                    >
+                        Navigator
+                    </button>
+                    <button
+                        onClick={() => handleViewChange('zones')}
+                        className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors ${
+                            activeView === 'zones' ? 'bg-gradient-to-r from-blue-500 to-fuchsia-600 text-white shadow-lg' : 'bg-slate-800/50 hover:bg-slate-700/60 text-slate-300'
+                        }`}
+                    >
+                        Wild Zones
+                    </button>
                 </div>
 
-                {activeSidebarTab === 'journal' && (
-                    <JournalSidebar
-                        entries={journalEntries}
-                        selectedEntryId={selectedEntryId}
-                        onSelectEntry={handleSelectJournalEntry}
-                        onAddEntry={handleAddJournalEntry}
-                        onDeleteEntry={handleDeleteJournalEntry}
-                    />
-                )}
-                {activeSidebarTab === 'zones' && (
-                  <WildZoneExplorer
-                    zones={KALOS_WILD_ZONES}
-                    onPokemonClick={handlePokemonClickAndCollapse}
-                  />
-                )}
+                <div className="border-t border-slate-700 mx-4 mb-2"></div>
+
+                <div className="flex-grow overflow-y-auto">
+                    {activeView === 'journal' && (
+                        <JournalSidebar
+                            entries={journalEntries}
+                            selectedEntryId={selectedEntryId}
+                            onSelectEntry={handleSelectJournalEntry}
+                            onAddEntry={handleAddJournalEntry}
+                            onDeleteEntry={handleDeleteJournalEntry}
+                        />
+                    )}
+                    {activeView === 'zones' && (
+                      <WildZoneExplorer
+                        zones={KALOS_WILD_ZONES}
+                        onPokemonClick={handlePokemonClickAndCollapse}
+                      />
+                    )}
+                </div>
             </div>
        </aside>
       

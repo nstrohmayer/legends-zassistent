@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { PokemonDetailLookupProps, PokemonDetailData, PokemonEvolutionStep, PokemonMoveInfo, PokemonBaseStat } from '../types';
 import { fetchPokemonDetails, fetchAllPokemonNames, fetchPokemonGenerationInsights } from '../services/pokeApiService';
@@ -170,7 +164,7 @@ export const PokemonDetailLookup: React.FC<PokemonDetailLookupProps> = ({ onAbil
     return (
         <div className="space-y-4">
             <h2 className="text-2xl font-bold text-sky-300">Pokémon Pokédex</h2>
-            <form onSubmit={handleFormSubmit} className="relative max-w-md">
+            <form onSubmit={handleFormSubmit} className="relative w-full">
                 <input
                     type="text"
                     value={query}

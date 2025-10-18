@@ -36,6 +36,80 @@
     .animate-fadeIn {
       animation: fadeIn 0.5s ease-out forwards;
     }
+
+    /* Styles for rendered markdown content */
+    .markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4 {
+        font-weight: 800;
+        color: #e2e8f0; /* slate-200 */
+        margin-bottom: 0.75rem;
+        border-bottom: 1px solid #334155; /* slate-700 */
+        padding-bottom: 0.25rem;
+    }
+    .markdown-content h1 { font-size: 2em; }
+    .markdown-content h2 { font-size: 1.5em; }
+    .markdown-content h3 { font-size: 1.25em; }
+    .markdown-content h4 { font-size: 1em; }
+    .markdown-content p {
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+    .markdown-content ul, .markdown-content ol {
+        margin-bottom: 1rem;
+        padding-left: 2rem;
+    }
+    .markdown-content ul { list-style-type: disc; }
+    .markdown-content ol { list-style-type: decimal; }
+    .markdown-content li { margin-bottom: 0.25rem; }
+    .markdown-content a {
+        color: #38bdf8; /* sky-400 */
+        text-decoration: underline;
+    }
+    .markdown-content a:hover { color: #7dd3fc; /* sky-300 */ }
+    .markdown-content code {
+        background-color: #1e293b; /* slate-800 */
+        color: #f472b6; /* pink-400 */
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.25rem;
+        font-family: monospace;
+        font-size: 0.9em;
+    }
+    .markdown-content pre {
+        background-color: #1e293b; /* slate-800 */
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        margin-bottom: 1rem;
+    }
+    .markdown-content pre code {
+        padding: 0;
+        background-color: transparent;
+        color: inherit;
+    }
+    .markdown-content blockquote {
+        border-left: 4px solid #475569; /* slate-600 */
+        padding-left: 1rem;
+        margin-left: 0;
+        margin-bottom: 1rem;
+        font-style: italic;
+        color: #94a3b8; /* slate-400 */
+    }
+    .markdown-content hr {
+        border-top: 1px solid #334155; /* slate-700 */
+        margin: 1.5rem 0;
+    }
+    .pokemon-link {
+        color: #facc15; /* yellow-400 */
+        font-weight: 600;
+        text-decoration: underline;
+        text-decoration-style: dotted;
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+    }
+    .pokemon-link:hover {
+        color: #fde047; /* yellow-300 */
+    }
   </style>
 <script type="importmap">
 {
@@ -44,6 +118,7 @@
     "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
     "react/": "https://esm.sh/react@^19.1.0/",
     "@google/genai": "https://esm.sh/@google/genai@^1.1.0",
+    "marked": "https://esm.sh/marked@^14.0.0",
     "path": "https://esm.sh/path@^0.12.7",
     "url": "https://esm.sh/url@^0.11.4",
     "process": "https://esm.sh/process@^0.11.10",
